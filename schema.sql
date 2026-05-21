@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS `plots` (
     `seller_co` VARCHAR(255) DEFAULT NULL,
     `note` TEXT DEFAULT NULL,
     `plot_transfer` ENUM('YES', 'NO', 'Not Applicable') DEFAULT 'NO',
+    `status` ENUM('Active', 'Deactive') DEFAULT 'Active',
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`document_type_id`) REFERENCES `document_types`(`id`) ON DELETE SET NULL,
     FOREIGN KEY (`plot_status_id`) REFERENCES `plot_statuses`(`id`) ON DELETE SET NULL,

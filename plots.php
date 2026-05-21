@@ -12,6 +12,21 @@ $errorMsg = '';
 $action = isset($_GET['action']) ? trim($_GET['action']) : 'list';
 $plotId = isset($_GET['id']) ? intval($_GET['id']) : null;
 
+// Handle Plot Status Toggle Request
+if ($action === 'toggle_status' && $plotId) {
+    $newStatus = isset($_GET['status']) && $_GET['status'] === 'Deactive' ? 'Deactive' : 'Active';
+    try {
+        $stmt = $pdo->prepare("UPDATE plots SET status = :status WHERE id = :id");
+        $stmt->execute(['status' => $newStatus, 'id' => $plotId]);
+        $_SESSION['success_msg'] = "Plot status updated to " . $newStatus . " successfully!";
+        header("Location: plots.php");
+        exit;
+    } catch (PDOException $e) {
+        $errorMsg = "Error updating plot status: " . $e->getMessage();
+        $action = 'list';
+    }
+}
+
 // Handle Plot Delete Request
 if ($action === 'delete' && $plotId) {
     try {
@@ -51,15 +66,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($action === 'add' || $action === '
     
     $sellerName = trim($_POST['seller_name'] ?? '');
     $sellerAddress = trim($_POST['seller_address'] ?? '');
-    $sellerCity = trim($_POST['seller_city'] ?? '');
+    $sellerCity = null;
     $sellerMobile = trim($_POST['seller_mobile'] ?? '');
     $sellerAltMobile = trim($_POST['seller_alt_mobile'] ?? '');
-    $sellerCo = trim($_POST['seller_co'] ?? '');
+    $sellerCo = null;
     
     $note = trim($_POST['note'] ?? '');
     $plotTransfer = trim($_POST['plot_transfer'] ?? 'NO');
     
-    if (!empty($plotNo) && !empty($purchaserName) && $sizeSqMt > 0) {
+    if (!empty($plotNo) && $sizeSqMt > 0) {
         try {
             if ($action === 'edit' && $plotId) {
                 // Update
@@ -163,7 +178,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($action === 'add' || $action === '
             $errorMsg = "A database error occurred: " . htmlspecialchars($e->getMessage());
         }
     } else {
-        $errorMsg = "Please fill out all mandatory fields: Plot Number, Size (Sq. Mt.), and Purchaser's Name.";
+        $errorMsg = "Please fill out all mandatory fields: Plot Number and Size (Sq. Mt.).";
     }
 }
 
@@ -201,31 +216,34 @@ if ($action === 'edit' && $plotId) {
 <?php if ($action === 'list'): ?>
     <!-- -------------------------------- LIST VIEW -------------------------------- -->
     <?php
-    // Search filter query
+    // Search and Status filter query
     $search = trim($_GET['search'] ?? '');
+    $statusFilter = isset($_GET['status_filter']) ? trim($_GET['status_filter']) : '';
     $plots = [];
     try {
+        $query = "
+            SELECT p.*, dt.name as document_type, ps.name as plot_status 
+            FROM plots p 
+            LEFT JOIN document_types dt ON p.document_type_id = dt.id 
+            LEFT JOIN plot_statuses ps ON p.plot_status_id = ps.id
+            WHERE 1=1
+        ";
+        $params = [];
+        
         if (!empty($search)) {
-            $stmt = $pdo->prepare("
-                SELECT p.*, dt.name as document_type, ps.name as plot_status 
-                FROM plots p 
-                LEFT JOIN document_types dt ON p.document_type_id = dt.id 
-                LEFT JOIN plot_statuses ps ON p.plot_status_id = ps.id
-                WHERE p.plot_no LIKE :search 
-                   OR p.purchaser_name LIKE :search 
-                   OR p.seller_name LIKE :search
-                ORDER BY p.id DESC
-            ");
-            $stmt->execute(['search' => "%$search%"]);
-        } else {
-            $stmt = $pdo->query("
-                SELECT p.*, dt.name as document_type, ps.name as plot_status 
-                FROM plots p 
-                LEFT JOIN document_types dt ON p.document_type_id = dt.id 
-                LEFT JOIN plot_statuses ps ON p.plot_status_id = ps.id
-                ORDER BY p.id DESC
-            ");
+            $query .= " AND (p.plot_no LIKE :search OR p.purchaser_name LIKE :search OR p.seller_name LIKE :search)";
+            $params['search'] = "%$search%";
         }
+        
+        if (!empty($statusFilter)) {
+            $query .= " AND p.status = :status_filter";
+            $params['status_filter'] = $statusFilter;
+        }
+        
+        $query .= " ORDER BY p.id DESC";
+        
+        $stmt = $pdo->prepare($query);
+        $stmt->execute($params);
         $plots = $stmt->fetchAll();
     } catch (PDOException $e) {
         $errorMsg = "Error loading plots list: " . $e->getMessage();
@@ -260,7 +278,7 @@ if ($action === 'edit' && $plotId) {
     
     <!-- Search Bar Card -->
     <div class="form-card" style="padding: 1.25rem 1.5rem; margin-bottom: 2rem;">
-        <form action="plots.php" method="GET" style="display: flex; gap: 10px;">
+        <form action="plots.php" method="GET" style="display: flex; gap: 10px; align-items: center;">
             <input type="hidden" name="action" value="list">
             <input 
                 type="text" 
@@ -268,9 +286,17 @@ if ($action === 'edit' && $plotId) {
                 class="input-control" 
                 placeholder="Search by Plot No, Purchaser Name, or Seller Name..." 
                 value="<?php echo htmlspecialchars($search); ?>"
+                style="flex: 1;"
             >
+            
+            <select name="status_filter" class="input-control" style="width: 180px; font-weight: 600; cursor: pointer;" onchange="this.form.submit()">
+                <option value="">-- All Statuses --</option>
+                <option value="Active" <?php echo $statusFilter === 'Active' ? 'selected' : ''; ?>>Active</option>
+                <option value="Deactive" <?php echo $statusFilter === 'Deactive' ? 'selected' : ''; ?>>Deactive</option>
+            </select>
+            
             <button type="submit" class="btn btn-accent"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
-            <?php if (!empty($search)): ?>
+            <?php if (!empty($search) || !empty($statusFilter)): ?>
                 <a href="plots.php" class="btn btn-outline">Clear</a>
             <?php endif; ?>
         </form>
@@ -289,6 +315,7 @@ if ($action === 'edit' && $plotId) {
                         <th style="width: 130px;">Size (Sq. Vaar)</th>
                         <th>Doc Type</th>
                         <th style="width: 130px;">Plot Transfer</th>
+                        <th style="width: 120px; text-align: center;">Entry Status</th>
                         <th style="width: 200px; text-align: center;">Actions</th>
                     </tr>
                 </thead>
@@ -298,8 +325,8 @@ if ($action === 'edit' && $plotId) {
                             <tr>
                                 <td><strong><?php echo htmlspecialchars($plot['plot_no']); ?></strong></td>
                                 <td>
-                                    <div><strong><?php echo htmlspecialchars($plot['purchaser_name']); ?></strong></div>
-                                    <div style="font-size:0.75rem; color: var(--text-muted);"><i class="fa-solid fa-phone"></i> <?php echo htmlspecialchars($plot['purchaser_mobile']); ?></div>
+                                    <div><strong><?php echo htmlspecialchars($plot['purchaser_name'] ?: 'N/A'); ?></strong></div>
+                                    <div style="font-size:0.75rem; color: var(--text-muted);"><i class="fa-solid fa-phone"></i> <?php echo htmlspecialchars($plot['purchaser_mobile'] ?: 'N/A'); ?></div>
                                 </td>
                                 <td>
                                     <span class="badge" style="background-color: #eef2f6; color: #475569; border: 1px solid #cbd5e1; text-transform: none;">
@@ -323,6 +350,19 @@ if ($action === 'edit' && $plotId) {
                                     </span>
                                 </td>
                                 <td style="text-align: center;">
+                                    <?php 
+                                    $statusClass = $plot['status'] === 'Active' ? 'badge-yes' : 'badge-no';
+                                    $toggleStatus = $plot['status'] === 'Active' ? 'Deactive' : 'Active';
+                                    ?>
+                                    <a href="plots.php?action=toggle_status&id=<?php echo $plot['id']; ?>&status=<?php echo $toggleStatus; ?>" 
+                                       class="badge <?php echo $statusClass; ?>" 
+                                       style="text-decoration: none; cursor: pointer; transition: all 0.2s; display: inline-block;"
+                                       title="Click to toggle status"
+                                    >
+                                        <?php echo htmlspecialchars($plot['status']); ?>
+                                    </a>
+                                </td>
+                                <td style="text-align: center;">
                                     <div style="display: inline-flex; gap: 6px;">
                                         <a href="plots.php?action=edit&id=<?php echo $plot['id']; ?>" class="btn btn-outline btn-sm" title="Edit Plot">
                                             <i class="fa-solid fa-pen-to-square"></i> Edit
@@ -341,7 +381,7 @@ if ($action === 'edit' && $plotId) {
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 3rem;">No plots found matching your criteria.</td>
+                            <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 3rem;">No plots found matching your criteria.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
@@ -442,50 +482,46 @@ if ($action === 'edit' && $plotId) {
                 <h3 style="border-bottom: 2px solid var(--border); padding-bottom: 0.5rem;"><i class="fa-solid fa-cart-shopping"></i> Purchaser's Details (ખરીદનારની વિગત)</h3>
                 
                 <div class="form-group">
-                    <label for="purchaser_name">ખરીદનારનું નામ (Purchaser's Full Name) <span style="color:var(--danger)">*</span></label>
+                    <label for="purchaser_name">ખરીદનારનું નામ (Purchaser's Full Name)</label>
                     <input 
                         type="text" 
                         id="purchaser_name" 
                         name="purchaser_name" 
                         class="input-control" 
                         value="<?php echo htmlspecialchars($plotData['purchaser_name'] ?? ''); ?>" 
-                        required
                     >
                 </div>
                 
                 <div class="form-group">
-                    <label for="purchaser_address">સરનામું (Address) <span style="color:var(--danger)">*</span></label>
+                    <label for="purchaser_address">સરનામું (Address)</label>
                     <textarea 
                         id="purchaser_address" 
                         name="purchaser_address" 
                         class="input-control" 
                         rows="3" 
-                        required
                     ><?php echo htmlspecialchars($plotData['purchaser_address'] ?? ''); ?></textarea>
                 </div>
                 
                 <div class="form-group">
-                    <label for="purchaser_city">શહેર (City) <span style="color:var(--danger)">*</span></label>
+                    <label for="purchaser_city">શહેર (City)</label>
                     <input 
                         type="text" 
                         id="purchaser_city" 
                         name="purchaser_city" 
                         class="input-control" 
                         value="<?php echo htmlspecialchars($plotData['purchaser_city'] ?? ''); ?>" 
-                        required
                     >
                 </div>
                 
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="purchaser_mobile">મોબાઈલ નંબર (Mobile Number) <span style="color:var(--danger)">*</span></label>
+                        <label for="purchaser_mobile">મોબાઈલ નંબર (Mobile Number)</label>
                         <input 
                             type="text" 
                             id="purchaser_mobile" 
                             name="purchaser_mobile" 
                             class="input-control" 
                             value="<?php echo htmlspecialchars($plotData['purchaser_mobile'] ?? ''); ?>" 
-                            required
                         >
                     </div>
                     
@@ -588,17 +624,7 @@ if ($action === 'edit' && $plotId) {
                         rows="3"
                     ><?php echo htmlspecialchars($plotData['seller_address'] ?? ''); ?></textarea>
                 </div>
-                
-                <div class="form-group">
-                    <label for="seller_city">શહેર (Seller's City)</label>
-                    <input 
-                        type="text" 
-                        id="seller_city" 
-                        name="seller_city" 
-                        class="input-control" 
-                        value="<?php echo htmlspecialchars($plotData['seller_city'] ?? ''); ?>"
-                    >
-                </div>
+
                 
                 <div class="form-grid">
                     <div class="form-group">
@@ -623,17 +649,7 @@ if ($action === 'edit' && $plotId) {
                         >
                     </div>
                 </div>
-                
-                <div class="form-group">
-                    <label for="seller_co">સી/ઓ (C/o.)</label>
-                    <input 
-                        type="text" 
-                        id="seller_co" 
-                        name="seller_co" 
-                        class="input-control" 
-                        value="<?php echo htmlspecialchars($plotData['seller_co'] ?? ''); ?>"
-                    >
-                </div>
+
                 
                 <h3 style="border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; margin-top: 1rem;"><i class="fa-solid fa-note-sticky"></i> Remarks</h3>
                 
