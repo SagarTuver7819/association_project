@@ -39,9 +39,9 @@ if (isset($_SESSION['error_msg'])) {
 // Handle Form Submission (Add / Edit)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($action === 'add' || $action === 'edit')) {
     $plotId = intval($_POST['plot_id'] ?? 0);
-    $startDate1 = $_POST['start_date_1'] ?? '1999-04-01';
-    $endDate1 = $_POST['end_date_1'] ?? '2022-03-31';
-    $years1 = intval($_POST['years_1'] ?? 23);
+    $startDate1 = $_POST['start_date_1'] ?? '';
+    $endDate1 = $_POST['end_date_1'] ?? '';
+    $years1 = intval($_POST['years_1'] ?? 0);
     $rate1 = floatval($_POST['rate_1'] ?? 2.00);
     
     // Get plot details to calculate amounts
@@ -73,6 +73,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($action === 'add' || $action === '
         }
         
         try {
+            if (empty($startDate1)) {
+                throw new Exception("Start Date (શરૂઆતની તારીખ) is required.");
+            }
+            if (empty($endDate1)) {
+                throw new Exception("End Date (અંતિમ તારીખ) is required.");
+            }
+
             $pdo->beginTransaction();
             
             if ($action === 'edit' && $dueId) {
@@ -517,8 +524,9 @@ if ($action === 'edit' && $dueId) {
                                 class="input-control" 
                                 min="1999-04-01" 
                                 max="2022-03-31" 
-                                value="<?php echo $dueData['start_date_1'] ?? '1999-04-01'; ?>" 
+                                value="<?php echo $dueData['start_date_1'] ?? ''; ?>" 
                                 onchange="calculatePeriod1()"
+                                required
                             >
                         </div>
                         
@@ -545,7 +553,7 @@ if ($action === 'edit' && $dueId) {
                                 id="years_1" 
                                 name="years_1" 
                                 class="input-control" 
-                                value="<?php echo $dueData['years_1'] ?? 23; ?>" 
+                                value="<?php echo $dueData['years_1'] ?? ''; ?>" 
                                 readonly 
                                 style="font-weight: 700; background-color: #f8fafc;"
                             >
