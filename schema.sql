@@ -83,6 +83,32 @@ CREATE TABLE IF NOT EXISTS `receipts` (
     FOREIGN KEY (`plot_id`) REFERENCES `plots`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Create Due Masters Table
+CREATE TABLE IF NOT EXISTS `due_masters` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `plot_id` INT NOT NULL UNIQUE,
+    `start_date_1` DATE NOT NULL,
+    `end_date_1` DATE NOT NULL,
+    `years_1` INT NOT NULL,
+    `rate_1` DECIMAL(10,2) DEFAULT 2.00,
+    `amount_1` DECIMAL(10,2) NOT NULL,
+    `total_amount` DECIMAL(10,2) NOT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`plot_id`) REFERENCES `plots`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Create Due Master Years Table
+CREATE TABLE IF NOT EXISTS `due_master_years` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `due_master_id` INT NOT NULL,
+    `financial_year` VARCHAR(10) NOT NULL,
+    `rate` DECIMAL(10,2) DEFAULT 5.00,
+    `amount` DECIMAL(10,2) NOT NULL,
+    UNIQUE KEY `unique_due_year` (`due_master_id`, `financial_year`),
+    FOREIGN KEY (`due_master_id`) REFERENCES `due_masters`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
 -- Seed Default Admin User (username: admin, password: admin123)
 -- Hash generated using password_hash('admin123', PASSWORD_DEFAULT)
 INSERT INTO `users` (`id`, `username`, `password`, `full_name`)

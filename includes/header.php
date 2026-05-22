@@ -62,6 +62,9 @@ if (!isset($pageTitle)) {
                 <a href="fee_masters.php" class="nav-link <?php echo ($currentPage == 'fee_masters.php') ? 'active' : ''; ?>">
                     <i class="fa-solid fa-gears"></i> Fee Masters
                 </a>
+                <a href="due_masters.php" class="nav-link <?php echo ($currentPage == 'due_masters.php') ? 'active' : ''; ?>">
+                    <i class="fa-solid fa-file-invoice-dollar"></i> Due Master
+                </a>
                 <div class="nav-user-mobile-only">
                     <span><i class="fa-solid fa-circle-user"></i> <?php echo htmlspecialchars($_SESSION['full_name']); ?></span>
                     <a href="logout.php" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>

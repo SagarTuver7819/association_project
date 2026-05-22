@@ -5,7 +5,6 @@
 require_once 'config/db.php';
 
 $pageTitle = 'Plots Management';
-require_once 'includes/header.php';
 
 $successMsg = '';
 $errorMsg = '';
@@ -181,6 +180,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($action === 'add' || $action === '
         $errorMsg = "Please fill out all mandatory fields: Plot Number and Size (Sq. Mt.).";
     }
 }
+
+require_once 'includes/header.php';
 
 // Fetch document types for dropdown
 $docTypes = [];

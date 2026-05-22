@@ -5,7 +5,6 @@
 require_once 'config/db.php';
 
 $pageTitle = 'Fee & Income Masters';
-require_once 'includes/header.php';
 
 $successMsg = '';
 $errorMsg = '';
@@ -102,6 +101,8 @@ if ($tab === 'other') {
         }
     }
 }
+
+require_once 'includes/header.php';
 
 // Load Redirect message alerts
 if (isset($_SESSION['success_msg'])) {
@@ -267,7 +268,7 @@ if ($action === 'edit' && $id) {
                 <i class="fa-solid fa-calendar-plus"></i> <?php echo $action === 'edit' ? 'Edit Maintenance Period' : 'Add Maintenance Period'; ?>
             </h3>
             
-            <form action="fee_masters.php?tab=maint&action=<?php echo $action; ?><?php echo $id ? '&id='.$id : ''; ?>" method="POST" autocomplete="off">
+            <form action="fee_masters.php?tab=maint&action=<?php echo $action === 'edit' ? 'edit' : 'add'; ?><?php echo $id ? '&id='.$id : ''; ?>" method="POST" autocomplete="off">
                 <div class="form-group" style="margin-bottom: 1.25rem;">
                     <label for="period_name">Period Name / Dates (પિરિયડ) <span style="color:var(--danger)">*</span></label>
                     <input 
@@ -311,7 +312,7 @@ if ($action === 'edit' && $id) {
                 <i class="fa-solid fa-circle-plus"></i> <?php echo $action === 'edit' ? 'Edit Fee Category' : 'Add Fee Category'; ?>
             </h3>
             
-            <form action="fee_masters.php?tab=other&action=<?php echo $action; ?><?php echo $id ? '&id='.$id : ''; ?>" method="POST" autocomplete="off">
+            <form action="fee_masters.php?tab=other&action=<?php echo $action === 'edit' ? 'edit' : 'add'; ?><?php echo $id ? '&id='.$id : ''; ?>" method="POST" autocomplete="off">
                 <div class="form-group" style="margin-bottom: 1.25rem;">
                     <label for="fee_name">Fee Name / Income Description (ફી નામ) <span style="color:var(--danger)">*</span></label>
                     <input 

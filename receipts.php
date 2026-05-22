@@ -5,7 +5,6 @@
 require_once 'config/db.php';
 
 $pageTitle = 'Receipt Master';
-require_once 'includes/header.php';
 
 $successMsg = '';
 $errorMsg = '';
@@ -163,6 +162,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($action === 'add' || $action === '
         $errorMsg = "Please make sure to fill out Receipt Number, Plot Number, and Customer Name.";
     }
 }
+
+require_once 'includes/header.php';
 
 // Fetch all registered plots for the auto-fill dropdown
 $plotsList = [];

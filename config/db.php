@@ -2,10 +2,19 @@
 // config/db.php
 // Database configuration for the Association Management System
 
+if (ob_get_level() == 0) {
+    ob_start();
+}
+
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
+
 $host = '127.0.0.1';
-$user = 'jrosvllq_association_management_db';
-$pass = 'GmtUa(O7&04_{kN,';
-$dbname = 'jrosvllq_association_management_db';
+$user = 'root';
+$pass = '';
+$dbname = 'association_management_db';
 
 try {
     // 1. Attempt connection directly to the database
