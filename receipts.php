@@ -217,25 +217,12 @@ if ($action === 'edit' && $receiptId) {
     $search = trim($_GET['search'] ?? '');
     $receipts = [];
     try {
-        if (!empty($search)) {
-            $stmt = $pdo->prepare("
-                SELECT r.*, p.plot_no 
-                FROM receipts r
-                JOIN plots p ON r.plot_id = p.id
-                WHERE r.receipt_no LIKE :search
-                   OR r.name LIKE :search
-                   OR p.plot_no LIKE :search
-                ORDER BY r.id DESC
-            ");
-            $stmt->execute(['search' => "%$search%"]);
-        } else {
-            $stmt = $pdo->query("
-                SELECT r.*, p.plot_no 
-                FROM receipts r
-                JOIN plots p ON r.plot_id = p.id
-                ORDER BY r.id DESC
-            ");
-        }
+        $stmt = $pdo->query("
+            SELECT r.*, p.plot_no 
+            FROM receipts r
+            JOIN plots p ON r.plot_id = p.id
+            ORDER BY r.id DESC
+        ");
         $receipts = $stmt->fetchAll();
     } catch (PDOException $e) {
         $errorMsg = "Error fetching receipts list: " . $e->getMessage();
@@ -289,7 +276,7 @@ if ($action === 'edit' && $receiptId) {
     <!-- Table Grid -->
     <div class="table-card">
         <div class="table-responsive">
-            <table>
+            <table class="datatable-premium" id="receiptsTable">
                 <thead>
                     <tr>
                         <th style="width: 110px;">Receipt No</th>

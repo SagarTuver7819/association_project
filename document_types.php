@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Fetch all document types
 try {
-    $stmt = $pdo->query("SELECT * FROM document_types ORDER BY name ASC");
+    $stmt = $pdo->query("SELECT * FROM document_types ORDER BY id DESC");
     $docTypes = $stmt->fetchAll();
 } catch (PDOException $e) {
     $errorMsg = "Error loading document types: " . $e->getMessage();
@@ -140,7 +140,7 @@ try {
         </div>
         
         <div class="table-responsive">
-            <table>
+            <table class="datatable-premium" id="docTypesTable">
                 <thead>
                     <tr>
                         <th style="width: 80px;">ID</th>

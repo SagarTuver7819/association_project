@@ -266,14 +266,9 @@ if ($action === 'edit' && $dueId) {
             SELECT dm.*, p.plot_no, p.plot_size_sq_vaar, p.purchaser_name
             FROM due_masters dm
             JOIN plots p ON dm.plot_id = p.id
+            ORDER BY dm.id DESC
         ";
-        if (!empty($search)) {
-            $queryStr .= " WHERE p.plot_no LIKE :search OR p.purchaser_name LIKE :search ";
-            $stmt = $pdo->prepare($queryStr . " ORDER BY CAST(p.plot_no AS UNSIGNED), p.plot_no ASC");
-            $stmt->execute(['search' => "%$search%"]);
-        } else {
-            $stmt = $pdo->query($queryStr . " ORDER BY CAST(p.plot_no AS UNSIGNED), p.plot_no ASC");
-        }
+        $stmt = $pdo->query($queryStr);
         $dueRecords = $stmt->fetchAll();
         
         // Fetch all mapped post-2022 years for all due masters
@@ -337,7 +332,7 @@ if ($action === 'edit' && $dueId) {
     <!-- Premium Grid Table matching the excel sheet style -->
     <div class="table-card">
         <div class="table-responsive">
-            <table class="due-master-table">
+            <table class="due-master-table datatable-premium" id="dueMastersTable">
                 <thead>
                     <tr style="background-color: #fef08a;">
                         <th style="width: 80px; color: #1e293b; font-weight: 800; border: 1px solid #e2e8f0; text-align: center;">Plot No.</th>

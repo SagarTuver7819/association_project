@@ -26,6 +26,9 @@ if (!isset($pageTitle)) {
     <title><?php echo htmlspecialchars($pageTitle); ?> - Green City</title>
     <!-- FontAwesome for Premium Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- DataTables & Buttons Styles -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
     <!-- Custom Style Sheet -->
     <link rel="stylesheet" href="assets/css/style.css">
 </head>

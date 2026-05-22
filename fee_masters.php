@@ -170,7 +170,7 @@ if ($action === 'edit' && $id) {
             ?>
             <div class="table-card">
                 <div class="table-responsive">
-                    <table>
+                    <table class="datatable-premium" id="maintFeesTable">
                         <thead>
                             <tr>
                                 <th>Maintenance Period Name (પિરિયડ)</th>
@@ -218,7 +218,7 @@ if ($action === 'edit' && $id) {
             ?>
             <div class="table-card">
                 <div class="table-responsive">
-                    <table>
+                    <table class="datatable-premium" id="otherFeesTable">
                         <thead>
                             <tr>
                                 <th>Fee Name / Income Particular (ફી નું નામ)</th>

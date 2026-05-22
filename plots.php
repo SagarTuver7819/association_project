@@ -227,24 +227,9 @@ if ($action === 'edit' && $plotId) {
             FROM plots p 
             LEFT JOIN document_types dt ON p.document_type_id = dt.id 
             LEFT JOIN plot_statuses ps ON p.plot_status_id = ps.id
-            WHERE 1=1
+            ORDER BY p.id DESC
         ";
-        $params = [];
-        
-        if (!empty($search)) {
-            $query .= " AND (p.plot_no LIKE :search OR p.purchaser_name LIKE :search OR p.seller_name LIKE :search)";
-            $params['search'] = "%$search%";
-        }
-        
-        if (!empty($statusFilter)) {
-            $query .= " AND p.status = :status_filter";
-            $params['status_filter'] = $statusFilter;
-        }
-        
-        $query .= " ORDER BY p.id DESC";
-        
-        $stmt = $pdo->prepare($query);
-        $stmt->execute($params);
+        $stmt = $pdo->query($query);
         $plots = $stmt->fetchAll();
     } catch (PDOException $e) {
         $errorMsg = "Error loading plots list: " . $e->getMessage();
@@ -306,7 +291,7 @@ if ($action === 'edit' && $plotId) {
     <!-- Table Grid -->
     <div class="table-card">
         <div class="table-responsive">
-            <table>
+            <table class="datatable-premium" id="plotsTable">
                 <thead>
                     <tr>
                         <th style="width: 110px;">Plot Number</th>
