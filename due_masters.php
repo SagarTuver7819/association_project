@@ -73,9 +73,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($action === 'add' || $action === '
         }
         
         try {
-            if (empty($startDate1)) {
-                throw new Exception("Start Date (શરૂઆતની તારીખ) is required.");
-            }
             if (empty($endDate1)) {
                 throw new Exception("End Date (અંતિમ તારીખ) is required.");
             }
@@ -97,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($action === 'add' || $action === '
                 ");
                 $stmt->execute([
                     'plot_id' => $plotId,
-                    'start_date' => $startDate1,
+                    'start_date' => !empty($startDate1) ? $startDate1 : null,
                     'end_date' => $endDate1,
                     'years' => $years1,
                     'rate' => $rate1,
@@ -126,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($action === 'add' || $action === '
                 ");
                 $stmt->execute([
                     'plot_id' => $plotId,
-                    'start_date' => $startDate1,
+                    'start_date' => !empty($startDate1) ? $startDate1 : null,
                     'end_date' => $endDate1,
                     'years' => $years1,
                     'rate' => $rate1,
@@ -526,7 +523,6 @@ if ($action === 'edit' && $dueId) {
                                 max="2022-03-31" 
                                 value="<?php echo $dueData['start_date_1'] ?? ''; ?>" 
                                 onchange="calculatePeriod1()"
-                                required
                             >
                         </div>
                         

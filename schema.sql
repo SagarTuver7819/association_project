@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS `receipts` (
 CREATE TABLE IF NOT EXISTS `due_masters` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `plot_id` INT NOT NULL UNIQUE,
-    `start_date_1` DATE NOT NULL,
+    `start_date_1` DATE DEFAULT NULL,
     `end_date_1` DATE NOT NULL,
     `years_1` INT NOT NULL,
     `rate_1` DECIMAL(10,2) DEFAULT 2.00,
