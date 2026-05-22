@@ -12,9 +12,9 @@ if (session_status() == PHP_SESSION_NONE) {
 
 
 $host = '127.0.0.1';
-$user = 'root';
-$pass = '';
-$dbname = 'association_management_db';
+$user = 'jrosvllq_association_management_db';
+$pass = 'GmtUa(O7&04_{kN,';
+$dbname = 'jrosvllq_association_management_db';
 
 try {
     // 1. Attempt connection directly to the database
