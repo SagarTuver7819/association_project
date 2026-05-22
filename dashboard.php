@@ -21,6 +21,10 @@ try {
     $stmt = $pdo->query("SELECT SUM(total_amount) as total FROM receipts");
     $totalFunds = $stmt->fetch()['total'] ?? 0.00;
     
+    // 4. Total Recorded Dues
+    $stmt = $pdo->query("SELECT SUM(total_amount) as total FROM due_masters");
+    $totalDues = $stmt->fetch()['total'] ?? 0.00;
+    
     // Fetch Recent Plots (Last 5)
     $recentPlotsStmt = $pdo->query("
         SELECT p.*, dt.name as document_type 
@@ -44,6 +48,7 @@ try {
     $totalPlots = 0;
     $totalReceipts = 0;
     $totalFunds = 0.00;
+    $totalDues = 0.00;
     $recentPlots = [];
     $recentReceipts = [];
 }
@@ -92,6 +97,16 @@ try {
             <span class="stat-value">Rs. <?php echo number_format($totalFunds, 2); ?></span>
         </div>
     </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon" style="background-color: #fefce8; color: #ca8a04;">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">Total Recorded Dues</span>
+            <span class="stat-value">Rs. <?php echo number_format($totalDues, 2); ?></span>
+        </div>
+    </div>
 </div>
 
 <!-- Quick Actions Panel -->
@@ -124,6 +139,13 @@ try {
             <div>
                 <strong>Plot Status Master</strong>
                 <div style="font-size:0.75rem; font-weight:normal;">Configure plot status choices</div>
+            </div>
+        </a>
+        <a href="due_masters.php" class="btn btn-outline" style="justify-content: flex-start; text-align: left; padding: 1rem;">
+            <i class="fa-solid fa-file-invoice-dollar" style="color: #ca8a04; font-size: 1.2rem;"></i>
+            <div>
+                <strong>Due Master</strong>
+                <div style="font-size:0.75rem; font-weight:normal;">Manage historical & annual dues</div>
             </div>
         </a>
     </div>
