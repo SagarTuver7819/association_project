@@ -137,6 +137,7 @@
                     searching: true,
                     info: true,
                     paging: true,
+                    scrollX: true,
                     order: [], // keep default natural SQL sorting on load
                     columnDefs: columnDefs,
                     language: {

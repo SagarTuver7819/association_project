@@ -31,12 +31,12 @@ if (isset($_SESSION['success_msg'])) {
     unset($_SESSION['success_msg']);
 }
 
-// Auto-generate next receipt number (e.g. max receipt + 1, starting from 2590)
-$nextReceiptNo = '2590';
+// Auto-generate next receipt number (e.g. max receipt + 1, starting from 2578)
+$nextReceiptNo = '2578';
 try {
     $stmt = $pdo->query("SELECT MAX(CAST(receipt_no AS UNSIGNED)) as max_no FROM receipts");
     $maxVal = $stmt->fetch()['max_no'];
-    if ($maxVal && $maxVal >= 2590) {
+    if ($maxVal && $maxVal >= 2578) {
         $nextReceiptNo = strval($maxVal + 1);
     }
 } catch (PDOException $e) {
@@ -216,6 +216,9 @@ if ($action === 'edit' && $receiptId) {
     <?php
     $search = trim($_GET['search'] ?? '');
     $receipts = [];
+    $receiptMaintFees = [];
+    $receiptOtherFees = [];
+    
     try {
         $stmt = $pdo->query("
             SELECT r.*, p.plot_no 
@@ -224,6 +227,25 @@ if ($action === 'edit' && $receiptId) {
             ORDER BY r.id DESC
         ");
         $receipts = $stmt->fetchAll();
+        
+        if (count($receipts) > 0) {
+            $receiptIds = array_column($receipts, 'id');
+            $inQuery = implode(',', array_fill(0, count($receiptIds), '?'));
+            
+            // Fetch total maintenance fee per receipt
+            $stmtMaint = $pdo->prepare("SELECT receipt_id, SUM(amount) as total_maint FROM receipt_maintenance_fees WHERE receipt_id IN ($inQuery) GROUP BY receipt_id");
+            $stmtMaint->execute($receiptIds);
+            foreach ($stmtMaint->fetchAll() as $row) {
+                $receiptMaintFees[$row['receipt_id']] = $row['total_maint'];
+            }
+            
+            // Fetch separate other fees per receipt
+            $stmtOther = $pdo->prepare("SELECT receipt_id, other_fee_id, amount FROM receipt_other_fees WHERE receipt_id IN ($inQuery)");
+            $stmtOther->execute($receiptIds);
+            foreach ($stmtOther->fetchAll() as $row) {
+                $receiptOtherFees[$row['receipt_id']][$row['other_fee_id']] = $row['amount'];
+            }
+        }
     } catch (PDOException $e) {
         $errorMsg = "Error fetching receipts list: " . $e->getMessage();
     }
@@ -279,13 +301,17 @@ if ($action === 'edit' && $receiptId) {
             <table class="datatable-premium" id="receiptsTable">
                 <thead>
                     <tr>
-                        <th style="width: 110px;">Receipt No</th>
-                        <th style="width: 120px;">Date</th>
-                        <th style="width: 100px;">Plot No</th>
+                        <th style="width: 100px;">Receipt No</th>
+                        <th style="width: 100px;">Date</th>
+                        <th style="width: 80px;">Plot No</th>
                         <th>Name</th>
-                        <th>Mobile</th>
-                        <th style="width: 150px;">Total Amount</th>
-                        <th style="width: 250px; text-align: center;">Actions</th>
+                        <th style="width: 100px;">Mobile</th>
+                        <th style="width: 110px;">Maint. Total</th>
+                        <?php foreach($otherMasters as $om): ?>
+                            <th style="width: 110px;"><?php echo htmlspecialchars($om['fee_name']); ?></th>
+                        <?php endforeach; ?>
+                        <th style="width: 120px;">Total Amount</th>
+                        <th style="width: 180px; text-align: center;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -297,7 +323,11 @@ if ($action === 'edit' && $receiptId) {
                                 <td><span style="background: var(--accent-light); padding: 2px 8px; border-radius: 4px; font-weight:700; color: var(--primary);"><?php echo htmlspecialchars($receipt['plot_no']); ?></span></td>
                                 <td><strong><?php echo htmlspecialchars($receipt['name']); ?></strong></td>
                                 <td><?php echo htmlspecialchars($receipt['mobile_no']); ?></td>
-                                <td><strong>Rs. <?php echo number_format($receipt['total_amount'], 2); ?></strong></td>
+                                <td>Rs. <?php echo number_format($receiptMaintFees[$receipt['id']] ?? 0, 2); ?></td>
+                                <?php foreach($otherMasters as $om): ?>
+                                    <td>Rs. <?php echo number_format($receiptOtherFees[$receipt['id']][$om['id']] ?? 0, 2); ?></td>
+                                <?php endforeach; ?>
+                                <td><strong style="color:var(--primary);">Rs. <?php echo number_format($receipt['total_amount'], 2); ?></strong></td>
                                 <td style="text-align: center;">
                                     <div style="display: inline-flex; gap: 6px;">
                                         <a href="print_receipt.php?id=<?php echo $receipt['id']; ?>" class="btn btn-accent btn-sm" target="_blank" title="Print/View PDF">
@@ -318,10 +348,6 @@ if ($action === 'edit' && $receiptId) {
                                 </td>
                             </tr>
                         <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 3rem;">No receipts found matching your criteria.</td>
-                        </tr>
                     <?php endif; ?>
                 </tbody>
             </table>

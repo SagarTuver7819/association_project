@@ -294,40 +294,73 @@ if ($action === 'edit' && $plotId) {
             <table class="datatable-premium" id="plotsTable">
                 <thead>
                     <tr>
-                        <th style="width: 90px;">Plot Number</th>
-                        <th>Purchaser's Name</th>
+                        <th style="width: 130px; text-align: center;">Actions</th>
+                        <th style="width: 80px;">Plot Number</th>
+                        <th style="width: 130px;">Purchaser's Name</th>
                         <th>Address</th>
-                        <th style="width: 120px;">Mobile No</th>
-                        <th style="width: 140px;">Plot Status</th>
-                        <th style="width: 115px;">Size (Sq. Mt.)</th>
-                        <th style="width: 115px;">Size (Sq. Vaar)</th>
-                        <th>Doc Type</th>
-                        <th style="width: 120px;">Plot Transfer</th>
-                        <th style="width: 110px; text-align: center;">Entry Status</th>
-                        <th style="width: 160px; text-align: center;">Actions</th>
+                        <th style="width: 115px;">Mobile No</th>
+                        <th style="width: 115px;">Alt Mobile No</th>
+                        <th style="width: 100px;">Doc No</th>
+                        <th style="width: 100px;">Doc Date</th>
+                        <th style="width: 130px;">Plot Status</th>
+                        <th style="width: 105px;">Size (Sq. Mt.)</th>
+                        <th style="width: 105px;">Size (Sq. Vaar)</th>
+                        <th style="width: 100px;">Doc Type</th>
+                        <th style="width: 105px;">Plot Transfer</th>
+                        <th style="width: 100px; text-align: center;">Entry Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (count($plots) > 0): ?>
                         <?php foreach ($plots as $plot): ?>
                             <tr>
+                                <td style="text-align: center;">
+                                    <div style="display: inline-flex; gap: 6px;">
+                                        <a href="plots.php?action=edit&id=<?php echo $plot['id']; ?>" class="btn btn-outline btn-sm" title="Edit Plot">
+                                            <i class="fa-solid fa-pen-to-square"></i> Edit
+                                        </a>
+                                        <a 
+                                            href="plots.php?action=delete&id=<?php echo $plot['id']; ?>" 
+                                            class="btn btn-danger btn-sm" 
+                                            onclick="triggerCustomConfirmDelete(this.href, 'Are you sure you want to delete this plot registry? All receipts associated with this plot will be permanently deleted.'); return false;"
+                                            title="Delete Plot"
+                                        >
+                                            <i class="fa-solid fa-trash-can"></i> Delete
+                                        </a>
+                                    </div>
+                                </td>
                                 <td><strong><?php echo htmlspecialchars($plot['plot_no']); ?></strong></td>
                                 <td><strong><?php echo htmlspecialchars($plot['purchaser_name'] ?: 'N/A'); ?></strong></td>
                                 <td style="font-size: 0.82rem; color: var(--text-muted);"><?php echo htmlspecialchars($plot['purchaser_address'] ?: '—'); ?></td>
+                                <!-- Mobile No - Primary only -->
                                 <td>
                                     <?php if (!empty($plot['purchaser_mobile'])): ?>
                                         <span style="display:inline-flex; align-items:center; gap:4px; font-size:0.85rem;">
                                             <i class="fa-solid fa-phone" style="color:var(--primary); font-size:0.75rem;"></i>
                                             <?php echo htmlspecialchars($plot['purchaser_mobile']); ?>
                                         </span>
-                                        <?php if (!empty($plot['purchaser_alt_mobile'])): ?>
-                                            <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">
-                                                <i class="fa-solid fa-phone"></i> <?php echo htmlspecialchars($plot['purchaser_alt_mobile']); ?>
-                                            </div>
-                                        <?php endif; ?>
                                     <?php else: ?>
                                         <span style="color:var(--text-muted);">N/A</span>
                                     <?php endif; ?>
+                                </td>
+                                <!-- Alt Mobile No - Separate column -->
+                                <td>
+                                    <?php if (!empty($plot['purchaser_alt_mobile'])): ?>
+                                        <span style="display:inline-flex; align-items:center; gap:4px; font-size:0.85rem; color:var(--text-muted);">
+                                            <i class="fa-solid fa-phone" style="font-size:0.75rem;"></i>
+                                            <?php echo htmlspecialchars($plot['purchaser_alt_mobile']); ?>
+                                        </span>
+                                    <?php else: ?>
+                                        <span style="color:var(--text-muted);">—</span>
+                                    <?php endif; ?>
+                                </td>
+                                <!-- Document Number - Separate column -->
+                                <td style="font-size: 0.85rem;">
+                                    <?php echo htmlspecialchars($plot['document_no'] ?: '—'); ?>
+                                </td>
+                                <!-- Document Date - Separate column -->
+                                <td style="font-size: 0.85rem; white-space: nowrap;">
+                                    <?php echo !empty($plot['document_date']) ? date('d/m/Y', strtotime($plot['document_date'])) : '—'; ?>
                                 </td>
                                 <td>
                                     <span class="badge" style="background-color: #eef2f6; color: #475569; border: 1px solid #cbd5e1; text-transform: none;">
@@ -363,26 +396,11 @@ if ($action === 'edit' && $plotId) {
                                         <?php echo htmlspecialchars($plot['status']); ?>
                                     </a>
                                 </td>
-                                <td style="text-align: center;">
-                                    <div style="display: inline-flex; gap: 6px;">
-                                        <a href="plots.php?action=edit&id=<?php echo $plot['id']; ?>" class="btn btn-outline btn-sm" title="Edit Plot">
-                                            <i class="fa-solid fa-pen-to-square"></i> Edit
-                                        </a>
-                                        <a 
-                                            href="plots.php?action=delete&id=<?php echo $plot['id']; ?>" 
-                                            class="btn btn-danger btn-sm" 
-                                            onclick="triggerCustomConfirmDelete(this.href, 'Are you sure you want to delete this plot registry? All receipts associated with this plot will be permanently deleted.'); return false;"
-                                            title="Delete Plot"
-                                        >
-                                            <i class="fa-solid fa-trash-can"></i> Delete
-                                        </a>
-                                    </div>
-                                </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="11" style="text-align: center; color: var(--text-muted); padding: 3rem;">No plots found matching your criteria.</td>
+                            <td colspan="15" style="text-align: center; color: var(--text-muted); padding: 3rem;">No plots found matching your criteria.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>

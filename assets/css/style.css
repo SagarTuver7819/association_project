@@ -701,29 +701,61 @@ label {
 
 .table-responsive {
     overflow-x: auto;
+    overflow-y: visible;
     width: 100%;
+}
+
+/* Styled horizontal scrollbar for custom containers and DataTables scroll body */
+.table-responsive, .dataTables_scrollBody {
+    scrollbar-width: thin;
+    scrollbar-color: #a9c2b0 #f0f5f2;
+}
+
+.table-responsive::-webkit-scrollbar, .dataTables_scrollBody::-webkit-scrollbar {
+    height: 8px;
+}
+.table-responsive::-webkit-scrollbar-track, .dataTables_scrollBody::-webkit-scrollbar-track {
+    background: #f0f5f2;
+    border-radius: 4px;
+}
+.table-responsive::-webkit-scrollbar-thumb, .dataTables_scrollBody::-webkit-scrollbar-thumb {
+    background: #a9c2b0;
+    border-radius: 4px;
+    border: 1px solid #f0f5f2;
+}
+.table-responsive::-webkit-scrollbar-thumb:hover, .dataTables_scrollBody::-webkit-scrollbar-thumb:hover {
+    background: #7aa98a;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
     text-align: left;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
 }
 
 th {
-    background-color: #edf3ee;
-    color: var(--primary);
-    font-weight: 700;
-    padding: 1rem 1.25rem;
-    border-bottom: 2px solid var(--border);
+    background-color: #1e3f20;
+    color: #ffffff;
+    font-weight: 600;
+    padding: 0.7rem 0.85rem;
+    border-bottom: 2px solid #16321a;
     font-family: var(--font-heading);
+    font-size: 0.8rem;
+    /* Prevent header text from wrapping */
+    white-space: nowrap;
+    letter-spacing: 0.2px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
 }
 
 td {
-    padding: 1rem 1.25rem;
+    padding: 0.65rem 0.85rem;
     border-bottom: 1px solid var(--border);
     color: var(--text-main);
+    font-size: 0.875rem;
+    vertical-align: middle;
 }
 
 tr:last-child td {
@@ -731,11 +763,11 @@ tr:last-child td {
 }
 
 tr {
-    transition: var(--transition);
+    transition: background-color 0.15s ease;
 }
 
 tr:hover td {
-    background-color: #fafdfb;
+    background-color: #f0fdf4;
 }
 
 /* Badges */
@@ -1420,8 +1452,15 @@ tr:hover td {
 .dataTables_wrapper table.dataTable {
     border-collapse: collapse !important;
     width: 100% !important;
-    margin: 1.5rem 0 !important;
+    margin: 0 !important;
     border-bottom: 1px solid var(--border) !important;
+}
+
+.dataTables_wrapper .dataTables_scroll {
+    margin: 1.5rem 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
 }
 
 .dataTables_wrapper table.dataTable thead th {
@@ -1433,6 +1472,7 @@ tr:hover td {
     border-bottom: 2px solid var(--border) !important;
     position: relative;
     cursor: pointer;
+    white-space: nowrap !important;
 }
 
 /* Custom interactive sort icons */
