@@ -95,13 +95,11 @@
     });
     </script>
 
-    <!-- Include JS Libraries for jQuery & DataTables Premium features (Search, Sort, PDF/Excel Export) -->
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <!-- pdfmake removed - PDF now uses browser native print for full Gujarati support -->
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
 
     <script>
@@ -160,48 +158,133 @@
                             }
                         },
                         {
-                            extend: 'pdfHtml5',
+                            // Custom Print-to-PDF button using browser native rendering
+                            // This ensures 100% Gujarati Unicode support via Google Fonts
                             text: '<i class="fa-solid fa-file-pdf"></i> Export to PDF',
                             className: 'dt-button buttons-pdf',
-                            title: function() { return document.title || 'Export'; },
-                            orientation: 'landscape',
-                            pageSize: 'A4',
-                            exportOptions: {
-                                columns: ':not(.no-export)'
-                            },
-                            customize: function(doc) {
-                                // Apply gorgeous corporate branding styles to PDF
-                                doc.styles.tableHeader = {
-                                    fillColor: '#1e3f20', // Forest Green
-                                    color: '#ffffff',
-                                    alignment: 'left',
-                                    bold: true,
-                                    fontSize: 8
-                                };
-                                doc.defaultStyle.fontSize = 7;
-                                doc.styles.title = {
-                                    color: '#1e3f20',
-                                    fontSize: 12,
-                                    bold: true,
-                                    alignment: 'center',
-                                    margin: [0, 0, 0, 10]
-                                };
-                                // Auto-adjust layout columns to fit within page
-                                if (doc.content[1] && doc.content[1].table) {
-                                    doc.content[1].table.widths = Array(doc.content[1].table.body[0].length).fill('*');
-                                    
-                                    // Add grid lines (borders)
-                                    var objLayout = {};
-                                    objLayout['hLineWidth'] = function(i) { return 0.5; };
-                                    objLayout['vLineWidth'] = function(i) { return 0.5; };
-                                    objLayout['hLineColor'] = function(i) { return '#cbd5e1'; };
-                                    objLayout['vLineColor'] = function(i) { return '#cbd5e1'; };
-                                    objLayout['paddingLeft'] = function(i) { return 6; };
-                                    objLayout['paddingRight'] = function(i) { return 6; };
-                                    objLayout['paddingTop'] = function(i) { return 4; };
-                                    objLayout['paddingBottom'] = function(i) { return 4; };
-                                    doc.content[1].layout = objLayout;
-                                }
+                            action: function(e, dt, button, config) {
+                                // Collect headers (exclude no-export columns)
+                                var headers = [];
+                                dt.columns(':not(.no-export)').every(function() {
+                                    headers.push($(this.header()).text().trim());
+                                });
+
+                                // Collect all visible rows data
+                                var rows = [];
+                                dt.rows({ search: 'applied' }).every(function() {
+                                    var rowData = [];
+                                    var $tr = $(this.node());
+                                    $tr.find('td').each(function(idx) {
+                                        // Skip no-export columns
+                                        var colIdx = dt.cell(this).index().column;
+                                        if (!$(dt.column(colIdx).header()).hasClass('no-export')) {
+                                            rowData.push($(this).text().trim());
+                                        }
+                                    });
+                                    rows.push(rowData);
+                                });
+
+                                // Build header row HTML
+                                var theadHtml = '<tr>' + headers.map(function(h) {
+                                    return '<th>' + h + '</th>';
+                                }).join('') + '</tr>';
+
+                                // Build body rows HTML
+                                var tbodyHtml = rows.map(function(row) {
+                                    return '<tr>' + row.map(function(cell) {
+                                        return '<td>' + cell + '</td>';
+                                    }).join('') + '</tr>';
+                                }).join('');
+
+                                var pageTitle = document.title || 'Report';
+
+                                // Generate print window with Noto Sans Gujarati from Google Fonts
+                                var printWindow = window.open('', '_blank', 'width=1200,height=800');
+                                printWindow.document.write(`<!DOCTYPE html>
+<html lang="gu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${pageTitle}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@400;600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', 'Noto Sans Gujarati', sans-serif;
+            font-size: 11px;
+            color: #1a1a2e;
+            padding: 20px;
+            background: #fff;
+        }
+        h1 {
+            text-align: center;
+            font-size: 16px;
+            color: #1e3f20;
+            margin-bottom: 4px;
+            font-family: 'Inter', 'Noto Sans Gujarati', sans-serif;
+            font-weight: 700;
+        }
+        .subtitle {
+            text-align: center;
+            font-size: 10px;
+            color: #64748b;
+            margin-bottom: 16px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+            font-family: 'Inter', 'Noto Sans Gujarati', sans-serif;
+        }
+        thead tr th {
+            background-color: #1e3f20;
+            color: #ffffff;
+            padding: 7px 8px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 9px;
+            border: 1px solid #16321a;
+        }
+        tbody tr td {
+            padding: 5px 8px;
+            border: 1px solid #e2e8f0;
+            vertical-align: top;
+            font-family: 'Inter', 'Noto Sans Gujarati', sans-serif;
+        }
+        tbody tr:nth-child(even) td { background-color: #f8fafc; }
+        tbody tr:hover td { background-color: #f0fdf4; }
+        .footer-note {
+            text-align: right;
+            font-size: 9px;
+            color: #94a3b8;
+            margin-top: 12px;
+        }
+        @media print {
+            body { padding: 10px; }
+            @page { size: A4 landscape; margin: 10mm; }
+            thead { display: table-header-group; }
+            tbody tr { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <h1>${pageTitle}</h1>
+    <div class="subtitle">Generated on: ${new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'2-digit',year:'numeric'})} | Total Records: ${rows.length}</div>
+    <table>
+        <thead>${theadHtml}</thead>
+        <tbody>${tbodyHtml}</tbody>
+    </table>
+    <div class="footer-note">Green City Association Management System &copy; ${new Date().getFullYear()}</div>
+    <script>
+        // Wait for fonts to load then print
+        document.fonts.ready.then(function() {
+            setTimeout(function() { window.print(); }, 500);
+        });
+    <\/script>
+</body>
+</html>`);
+                                printWindow.document.close();
                             }
                         }
                     ]

@@ -294,15 +294,17 @@ if ($action === 'edit' && $plotId) {
             <table class="datatable-premium" id="plotsTable">
                 <thead>
                     <tr>
-                        <th style="width: 110px;">Plot Number</th>
+                        <th style="width: 90px;">Plot Number</th>
                         <th>Purchaser's Name</th>
-                        <th style="width: 150px;">Plot Status</th>
-                        <th style="width: 130px;">Size (Sq. Mt.)</th>
-                        <th style="width: 130px;">Size (Sq. Vaar)</th>
+                        <th>Address</th>
+                        <th style="width: 120px;">Mobile No</th>
+                        <th style="width: 140px;">Plot Status</th>
+                        <th style="width: 115px;">Size (Sq. Mt.)</th>
+                        <th style="width: 115px;">Size (Sq. Vaar)</th>
                         <th>Doc Type</th>
-                        <th style="width: 130px;">Plot Transfer</th>
-                        <th style="width: 120px; text-align: center;">Entry Status</th>
-                        <th style="width: 200px; text-align: center;">Actions</th>
+                        <th style="width: 120px;">Plot Transfer</th>
+                        <th style="width: 110px; text-align: center;">Entry Status</th>
+                        <th style="width: 160px; text-align: center;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -310,9 +312,22 @@ if ($action === 'edit' && $plotId) {
                         <?php foreach ($plots as $plot): ?>
                             <tr>
                                 <td><strong><?php echo htmlspecialchars($plot['plot_no']); ?></strong></td>
+                                <td><strong><?php echo htmlspecialchars($plot['purchaser_name'] ?: 'N/A'); ?></strong></td>
+                                <td style="font-size: 0.82rem; color: var(--text-muted);"><?php echo htmlspecialchars($plot['purchaser_address'] ?: '—'); ?></td>
                                 <td>
-                                    <div><strong><?php echo htmlspecialchars($plot['purchaser_name'] ?: 'N/A'); ?></strong></div>
-                                    <div style="font-size:0.75rem; color: var(--text-muted);"><i class="fa-solid fa-phone"></i> <?php echo htmlspecialchars($plot['purchaser_mobile'] ?: 'N/A'); ?></div>
+                                    <?php if (!empty($plot['purchaser_mobile'])): ?>
+                                        <span style="display:inline-flex; align-items:center; gap:4px; font-size:0.85rem;">
+                                            <i class="fa-solid fa-phone" style="color:var(--primary); font-size:0.75rem;"></i>
+                                            <?php echo htmlspecialchars($plot['purchaser_mobile']); ?>
+                                        </span>
+                                        <?php if (!empty($plot['purchaser_alt_mobile'])): ?>
+                                            <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">
+                                                <i class="fa-solid fa-phone"></i> <?php echo htmlspecialchars($plot['purchaser_alt_mobile']); ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    <?php else: ?>
+                                        <span style="color:var(--text-muted);">N/A</span>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
                                     <span class="badge" style="background-color: #eef2f6; color: #475569; border: 1px solid #cbd5e1; text-transform: none;">
@@ -367,7 +382,7 @@ if ($action === 'edit' && $plotId) {
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="9" style="text-align: center; color: var(--text-muted); padding: 3rem;">No plots found matching your criteria.</td>
+                            <td colspan="11" style="text-align: center; color: var(--text-muted); padding: 3rem;">No plots found matching your criteria.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
