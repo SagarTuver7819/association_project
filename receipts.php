@@ -287,7 +287,16 @@ if ($action === 'edit' && $receiptId) {
                 class="input-control" 
                 placeholder="Search by Receipt No, Plot No, or Customer Name..." 
                 value="<?php echo htmlspecialchars($search); ?>"
+                style="flex: 1;"
             >
+            
+            <div style="display: flex; gap: 5px; align-items: center; border-left: 2px solid var(--border); padding-left: 10px; margin-left: 5px;">
+                <label for="min_date" style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">From:</label>
+                <input type="date" id="min_date" class="input-control" style="width: 140px;">
+                
+                <label for="max_date" style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-left: 5px;">To:</label>
+                <input type="date" id="max_date" class="input-control" style="width: 140px;">
+            </div>
             <button type="submit" class="btn btn-accent"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
             <?php if (!empty($search)): ?>
                 <a href="receipts.php" class="btn btn-outline">Clear</a>
@@ -298,7 +307,7 @@ if ($action === 'edit' && $receiptId) {
     <!-- Table Grid -->
     <div class="table-card">
         <div class="table-responsive">
-            <table class="datatable-premium" id="receiptsTable">
+            <table class="datatable-premium" id="receiptsTable" data-date-col="1">
                 <thead>
                     <tr>
                         <th style="width: 100px;">Receipt No</th>

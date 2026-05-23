@@ -227,9 +227,18 @@ if ($action === 'edit' && $plotId) {
             FROM plots p 
             LEFT JOIN document_types dt ON p.document_type_id = dt.id 
             LEFT JOIN plot_statuses ps ON p.plot_status_id = ps.id
-            ORDER BY p.id DESC
         ";
-        $stmt = $pdo->query($query);
+        
+        $params = [];
+        if ($statusFilter !== '') {
+            $query .= " WHERE p.status = :status ";
+            $params['status'] = $statusFilter;
+        }
+        
+        $query .= " ORDER BY p.id DESC ";
+        
+        $stmt = $pdo->prepare($query);
+        $stmt->execute($params);
         $plots = $stmt->fetchAll();
     } catch (PDOException $e) {
         $errorMsg = "Error loading plots list: " . $e->getMessage();
@@ -275,6 +284,14 @@ if ($action === 'edit' && $plotId) {
                 style="flex: 1;"
             >
             
+            <div style="display: flex; gap: 5px; align-items: center; border-left: 2px solid var(--border); padding-left: 10px; margin-left: 5px;">
+                <label for="min_date" style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">From:</label>
+                <input type="date" id="min_date" class="input-control" style="width: 140px;">
+                
+                <label for="max_date" style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-left: 5px;">To:</label>
+                <input type="date" id="max_date" class="input-control" style="width: 140px;">
+            </div>
+            
             <select name="status_filter" class="input-control" style="width: 180px; font-weight: 600; cursor: pointer;" onchange="this.form.submit()">
                 <option value="">-- All Statuses --</option>
                 <option value="Active" <?php echo $statusFilter === 'Active' ? 'selected' : ''; ?>>Active</option>
@@ -291,7 +308,7 @@ if ($action === 'edit' && $plotId) {
     <!-- Table Grid -->
     <div class="table-card">
         <div class="table-responsive">
-            <table class="datatable-premium" id="plotsTable">
+            <table class="datatable-premium" id="plotsTable" data-date-col="7">
                 <thead>
                     <tr>
                         <th style="width: 130px; text-align: center;">Actions</th>

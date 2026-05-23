@@ -321,7 +321,16 @@ if ($action === 'edit' && $dueId) {
                 class="input-control" 
                 placeholder="Search by Plot No or Owner Name..." 
                 value="<?php echo htmlspecialchars($search); ?>"
+                style="flex: 1;"
             >
+            
+            <div style="display: flex; gap: 5px; align-items: center; border-left: 2px solid var(--border); padding-left: 10px; margin-left: 5px;">
+                <label for="min_date" style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">From:</label>
+                <input type="date" id="min_date" class="input-control" style="width: 140px;">
+                
+                <label for="max_date" style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-left: 5px;">To:</label>
+                <input type="date" id="max_date" class="input-control" style="width: 140px;">
+            </div>
             <button type="submit" class="btn btn-accent"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
             <?php if (!empty($search)): ?>
                 <a href="due_masters.php" class="btn btn-outline">Clear</a>
@@ -332,10 +341,11 @@ if ($action === 'edit' && $dueId) {
     <!-- Premium Grid Table matching the excel sheet style -->
     <div class="table-card">
         <div class="table-responsive">
-            <table class="due-master-table datatable-premium" id="dueMastersTable">
+            <table class="due-master-table datatable-premium" id="dueMastersTable" data-date-col="1">
                 <thead>
                     <tr style="background-color: #fef08a;">
                         <th style="width: 80px; color: #1e293b; font-weight: 800; border: 1px solid #e2e8f0; text-align: center;">Plot No.</th>
+                        <th style="width: 100px; color: #1e293b; font-weight: 800; border: 1px solid #e2e8f0; text-align: center;">Created Date</th>
                         <th style="width: 120px; color: #1e293b; font-weight: 800; border: 1px solid #e2e8f0; text-align: right;">Size (Sq.Vaar)</th>
                         <th style="color: #1e293b; font-weight: 800; border: 1px solid #e2e8f0; text-align: center; font-size: 0.85rem;">
                             01/04/1999 To 31/03/2022<br>
@@ -365,6 +375,9 @@ if ($action === 'edit' && $dueId) {
                                     <span style="background: var(--accent-light); padding: 4px 10px; border-radius: 4px; color: var(--primary); font-size: 0.95rem;">
                                         <?php echo htmlspecialchars($row['plot_no']); ?>
                                     </span>
+                                </td>
+                                <td style="text-align: center; border: 1px solid #e2e8f0; font-weight: 600; color: #334155;">
+                                    <?php echo date('d-m-Y', strtotime($row['created_at'])); ?>
                                 </td>
                                 <td style="text-align: right; border: 1px solid #e2e8f0; font-weight: 700; color: #334155;">
                                     <?php echo number_format($row['plot_size_sq_vaar'], 2); ?>

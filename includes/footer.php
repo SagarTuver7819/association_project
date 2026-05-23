@@ -106,32 +106,112 @@
     $(document).ready(function() {
         // Automatically convert any table with the datatable-premium class
         if ($('.datatable-premium').length > 0) {
+            
+            // Inject custom CSS to make the header layout beautiful with Buttons, Length, and Filter
+            if ($('#dt-custom-header-style').length === 0) {
+                $('head').append(`
+                    <style id="dt-custom-header-style">
+                        .dt-custom-header {
+                            display: flex;
+                            flex-wrap: wrap;
+                            justify-content: space-between;
+                            align-items: center;
+                            gap: 15px;
+                            margin-bottom: 1.5rem;
+                            background: #f8fafc;
+                            padding: 12px 15px;
+                            border-radius: var(--radius-md);
+                            border: 1px solid var(--border);
+                        }
+                        .dt-custom-header .dt-buttons {
+                            margin-bottom: 0 !important;
+                            flex: 1;
+                        }
+                        .dt-custom-header .dataTables_length,
+                        .dt-custom-header .dataTables_filter {
+                            margin-bottom: 0 !important;
+                            float: none !important;
+                        }
+                        .dt-custom-header .dataTables_filter {
+                            text-align: right;
+                        }
+                    </style>
+                `);
+            }
+
             $('.datatable-premium').each(function() {
+                // Custom DataTables Date Range Filter Plugin
+                $.fn.dataTable.ext.search.push(
+                    function(settings, data, dataIndex) {
+                        var minDate = $('#min_date').val();
+                        var maxDate = $('#max_date').val();
+                        
+                        // We need to know which column index contains the date for each table
+                        // We can set a custom attribute data-date-col="index" on the table
+                        var dateColIndex = $(settings.nTable).data('date-col');
+                        
+                        if (typeof dateColIndex === 'undefined' || dateColIndex === null) {
+                            return true; // If no date column specified, don't filter
+                        }
+                        
+                        var dateStr = data[dateColIndex] || "";
+                        if (!dateStr.trim()) return true; // If row has empty date, maybe show it?
+                        
+                        // Parse DD-MM-YYYY or YYYY-MM-DD from the table column
+                        var rowDate = null;
+                        var parts = dateStr.trim().split('-');
+                        if (parts.length === 3) {
+                            if (parts[0].length === 4) {
+                                // YYYY-MM-DD
+                                rowDate = new Date(parts[0], parts[1]-1, parts[2]);
+                            } else {
+                                // DD-MM-YYYY
+                                rowDate = new Date(parts[2], parts[1]-1, parts[0]);
+                            }
+                        }
+                        
+                        if (!rowDate || isNaN(rowDate.getTime())) return true;
+                        
+                        if (minDate) {
+                            var min = new Date(minDate);
+                            min.setHours(0,0,0,0);
+                            if (rowDate < min) return false;
+                        }
+                        
+                        if (maxDate) {
+                            var max = new Date(maxDate);
+                            max.setHours(23,59,59,999);
+                            if (rowDate > max) return false;
+                        }
+                        
+                        return true;
+                    }
+                );
+
                 var $table = $(this);
                 
                 // Retrieve initial search value from URL parameters if present
                 var urlParams = new URLSearchParams(window.location.search);
                 var initialSearch = urlParams.get('search') || '';
                 
-                // Exclude sorting on action columns automatically (normally the last column)
+                // Exclude sorting and exporting on action columns automatically
                 var columnDefs = [];
-                var lastColIndex = $table.find('thead th').length - 1;
-                
-                // We want to make sure the Actions column (normally the last one) is not sortable
-                var $lastHeader = $table.find('thead th').eq(lastColIndex);
-                var lastHeaderText = $lastHeader.text().trim().toLowerCase();
-                if (lastHeaderText === 'actions' || lastHeaderText === 'action') {
-                    columnDefs.push({
-                        targets: lastColIndex,
-                        orderable: false,
-                        searchable: false,
-                        className: 'no-export'
-                    });
-                }
+                $table.find('thead th').each(function(index) {
+                    var headerText = $(this).text().trim().toLowerCase();
+                    if (headerText === 'actions' || headerText === 'action') {
+                        columnDefs.push({
+                            targets: index,
+                            orderable: false,
+                            searchable: false,
+                            className: 'no-export'
+                        });
+                    }
+                });
                 
                 // Initialize DataTable
                 var table = $table.DataTable({
-                    dom: 'Bfrtip',
+                    dom: '<"dt-custom-header"B l f>rtip',
+                    lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "View All"] ],
                     pageLength: 10,
                     ordering: true,
                     searching: true,
@@ -291,7 +371,12 @@
                     ]
                 });
                 
-                // If there is an initial search term from the URL, apply it
+                // Re-draw table when date filters change
+                $('#min_date, #max_date').on('change', function() {
+                    table.draw();
+                });
+                
+                // If there's an initial search from backend URL, apply it
                 if (initialSearch) {
                     table.search(initialSearch).draw();
                 }
